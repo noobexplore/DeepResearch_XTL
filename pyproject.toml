@@ -1,16 +1,21 @@
 [project]
-name = "agent"
+name = "planAgent"
 version = "0.0.1"
-description = "Starter template for making a new agent LangGraph."
+description = "plan module on zz product"
 authors = [
-    { name = "William Fu-Hinthorn", email = "13333726+hinthornw@users.noreply.github.com" },
+    { name = "XTL", email = "449053131@qq.com" },
 ]
 readme = "README.md"
-license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
-    "langgraph>=0.2.6",
-    "python-dotenv>=1.0.1",
+    "chromadb>=0.6.3",
+    "langchain>=0.3.26",
+    "langgraph>=0.4.1",
+    "langchain-tavily>=0.2.4",
+    "langchain-community>=0.3.26",
+    "langchain-openai>=0.3.16",
+    "langchain-core>=0.3.66",
+    "python-dotenv>=1.0.1"
 ]
 
 
@@ -24,8 +29,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["langgraph.templates.agent", "agent"]
 [tool.setuptools.package-dir]
-"langgraph.templates.agent" = "src/agent"
-"agent" = "src/agent"
+"langgraph.templates.agent" = "src/planAgent"
+"agent" = "src/planAgent"
 
 
 [tool.setuptools.package-data]

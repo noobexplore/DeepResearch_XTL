@@ -1,7 +1,10 @@
 {
   "dependencies": ["."],
   "graphs": {
-    "agent": "./src/agent/graph.py:graph"
+    "agent": "./src/planAgent/graph.py:graph"
+  },
+  "http": {
+    "app": "./src/planAgent/api/app.py:app"
   },
   "env": ".env",
   "image_distro": "wolfi"
