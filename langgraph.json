@@ -1,5 +1,7 @@
 {
-  "dependencies": ["."],
+  "dependencies": [
+    "."
+  ],
   "graphs": {
     "agent": "./src/planAgent/graph.py:graph"
   },
@@ -7,5 +9,10 @@
     "app": "./src/planAgent/api/app.py:app"
   },
   "env": ".env",
+  "dockerfile_lines": [
+    "ENV UV_DEFAULT_INDEX='https://mirrors.aliyun.com/pypi/simple'",
+    "RUN pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple",
+    "RUN pip config set global.trusted-host pypi.tuna.tsinghua.edu.cn"
+  ],
   "image_distro": "wolfi"
 }

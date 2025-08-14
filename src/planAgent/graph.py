@@ -6,17 +6,20 @@
 @File: configure.py
 @Time: 2025/7/28 11:08
 """
+import os
 from langgraph.types import Command
 from langgraph.graph import StateGraph, END
 from src.planAgent.api.model import CoderRequest
 from src.planAgent.utils.state import CodeState
 from src.planAgent.configure import Configuration
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
 from src.planAgent.utils.nodes import call_model, execute_python, feedback_generate
 
-checkpointer = MemorySaver()  # 这个一定是全局共享的
+if os.getenv("POSTGRES_URI") is None:
+    raise ValueError("POSTGRES_URI is not set")
+else:
+    POSTGRES_URI = os.getenv("POSTGRES_URI")
 
-# 简单的流程，先生成再执行
 workflow = StateGraph(CodeState, config_schema=Configuration)
 workflow.add_node("agent", call_model)
 workflow.add_node("exec", execute_python)
@@ -25,7 +28,7 @@ workflow.set_entry_point("agent")
 workflow.add_edge("agent", "feed")
 workflow.add_edge("feed", "exec")
 workflow.add_edge("exec", END)
-graph = workflow.compile(name="code master", checkpointer=checkpointer)
+graph = workflow.compile(name="code master")
 
 
 def response_process(response):
@@ -40,6 +43,7 @@ def response_process(response):
 
 def coder_master_sync(codeRequest: CoderRequest):
     """代码大师同步生成接口"""
+    # checkpointer = MemorySaver()  # 这个一定是全局共享的
     config = {"configurable": {"thread_id": codeRequest.agent_meta.thread_id}}
     input_message = {
         "messages": [("human", f"{codeRequest.input_data}")],
@@ -47,10 +51,17 @@ def coder_master_sync(codeRequest: CoderRequest):
         "sample_data_output": codeRequest.sample_data_output,
         "data_logical": codeRequest.data_logical
     }
-    if not codeRequest.resume_code:
-        response = graph.invoke(input=input_message, config=config)
-    else:
-        human_response = codeRequest.resume_code
-        human_command = Command(resume={"code": human_response})  # 恢复断点
-        response = graph.invoke(human_command, config=config)
+    # 初始化checkpointer
+    with PostgresSaver.from_conn_string(POSTGRES_URI) as checkpointer:
+        # 第一次装载数据库
+        checkpointer.setup()
+        # 这里可以赋值
+        graph.checkpointer = checkpointer
+        # 简单的流程，先生成再执行
+        if not codeRequest.resume_code:
+            response = graph.invoke(input=input_message, config=config)
+        else:
+            human_response = codeRequest.resume_code
+            human_command = Command(resume={"code": human_response})  # 恢复断点
+            response = graph.invoke(human_command, config=config)
     return response

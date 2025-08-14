@@ -1,0 +1,48 @@
+services:
+    langgraph-redis:
+        image: 172.34.120.87:9443/library/redis:6
+        healthcheck:
+            test: redis-cli ping
+            interval: 5s
+            timeout: 1s
+            retries: 5
+        networks:
+            - 33jd_default
+    langgraph-postgres:
+        image: 172.34.120.87:9443/transwarp/postgres:13.21-alpine3.20
+        ports:
+            - "55433:5432"
+        environment:
+            POSTGRES_DB: xtl
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        volumes:
+            - ./post_data:/var/lib/postgresql/data
+        healthcheck:
+            test: pg_isready -U postgres
+            start_period: 10s
+            timeout: 1s
+            retries: 5
+            interval: 5s
+        networks:
+            - 33jd_default
+    langgraph-api:
+        image: 172.34.120.87:9443/library/llm2code:1.0.2
+        ports:
+            - "58123:8000"
+        depends_on:
+            langgraph-redis:
+                condition: service_healthy
+            langgraph-postgres:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            REDIS_URI: redis://langgraph-redis:6379
+            LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+            POSTGRES_URI: postgres://postgres:postgres@langgraph-postgres:5432/postgres?sslmode=disable
+        networks:
+            - 33jd_default
+networks:
+  33jd_default:
+    external: true

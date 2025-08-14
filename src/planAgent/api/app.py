@@ -19,7 +19,6 @@ from src.planAgent.api.api_conf import _Cfg, path_static, redoc_monkey_patch, sw
 from src.planAgent.api.model import WdApiBaseResponse, WdApiStatus
 
 from src.planAgent.api.routers import coder
-from src.planAgent.graph import graph
 
 app = FastAPI(
     title=_Cfg.title,
@@ -68,5 +67,5 @@ async def any_exception_handler(
         ).model_dump(),
     )
 
-if __name__ == '__main__':
-    uvicorn.run(app='app:app', host='0.0.0.0', port=52024)
+# if __name__ == '__main__':
+#     uvicorn.run(app='app:app', host='0.0.0.0', port=52024)
